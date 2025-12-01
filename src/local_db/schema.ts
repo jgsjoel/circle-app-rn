@@ -1,4 +1,6 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { eq } from "drizzle-orm/"
+import { db } from "./db";
 
 export const chatParticipants = sqliteTable("chat_participants", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -9,9 +11,6 @@ export const chatParticipants = sqliteTable("chat_participants", {
     .notNull()
     .references(() => chats.id, { onDelete: "cascade" }),
 
-  contactId: integer("contact_id")
-    .notNull()
-    .references(() => contacts.id, { onDelete: "cascade" }),
 });
 
 
@@ -19,12 +18,8 @@ export const chats = sqliteTable("chats", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   publicChatId: text("public_chat_id"),
-  isGroup: integer("is_group", { mode: "boolean" }).notNull(),
   imageUrl: text("image_url"),
-  lastUpdated: integer("last_updated").notNull(), // timestamp ms
-
-  user1Id: integer("user1_id").notNull().references(() => contacts.id),
-  user2Id: integer("user2_id").notNull().references(() => contacts.id),
+  isGroup: integer("is_group", { mode: "boolean" }).notNull(),
 });
 
 
@@ -35,7 +30,6 @@ export const contacts = sqliteTable("contacts", {
   publicId: text("public_id").notNull(),   // pubContactId
   imageUrl: text("image_url"),
 });
-
 
 export const mediaFiles = sqliteTable("media_files", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -50,7 +44,7 @@ export const mediaFiles = sqliteTable("media_files", {
 
 export const messages = sqliteTable("messages", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  
+
   messageId: text("message_id").notNull(),
   msgPubId: text("msg_pub_id"),
   message: text("message").notNull(),

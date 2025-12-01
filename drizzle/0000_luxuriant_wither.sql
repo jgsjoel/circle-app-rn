@@ -2,18 +2,14 @@ CREATE TABLE `chat_participants` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`contact_public_id` text NOT NULL,
 	`chat_id` integer NOT NULL,
-	`contact_id` integer NOT NULL,
-	FOREIGN KEY (`chat_id`) REFERENCES `chats`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`contact_id`) REFERENCES `contacts`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`chat_id`) REFERENCES `chats`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `chats` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`public_chat_id` text,
-	`is_group` integer NOT NULL,
-	`image_url` text,
-	`last_updated` integer NOT NULL
+	`is_group` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `contacts` (

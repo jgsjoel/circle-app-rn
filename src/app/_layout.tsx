@@ -10,14 +10,9 @@ import { openDatabaseSync } from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../../drizzle/migrations';
-import { ContactService } from '../services/contact_sync';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveUserFromToken } from '../utils/jwtUtil';
-
 
 const expoDb = openDatabaseSync("db.db");
 const db = drizzle(expoDb);
-
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -25,19 +20,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     checkAuthStatus();
-    const contactService = new ContactService();
-
-    // Call syncContacts
-    const sync = async () => {
-      try {
-        await contactService.syncContacts();
-        console.log("Contacts synced successfully!");
-      } catch (e) {
-        console.error("Failed to sync contacts:", e);
-      }
-    };
-
-    sync();
   }, []);
 
 

@@ -6,6 +6,7 @@ interface CurrentUser {
   phone: string;
   publicId: string;
   isOnline?: boolean;
+  localChatId?:any;
 }
 
 interface MessagingStore {

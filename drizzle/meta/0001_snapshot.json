@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8fec538e-3525-4f6d-a543-e124b921c100",
-  "prevId": "b399841d-02f2-46d9-90c5-ffe413af277c",
+  "id": "13aff63b-44e9-4f82-be6b-65dee92c57ac",
+  "prevId": "5cf7e29a-11ca-4ab1-bb31-490b2cda931a",
   "tables": {
     "chat_participants": {
       "name": "chat_participants",
@@ -27,13 +27,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "contact_id": {
-          "name": "contact_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
         }
       },
       "indexes": {},
@@ -44,19 +37,6 @@
           "tableTo": "chats",
           "columnsFrom": [
             "chat_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "chat_participants_contact_id_contacts_id_fk": {
-          "name": "chat_participants_contact_id_contacts_id_fk",
-          "tableFrom": "chat_participants",
-          "tableTo": "contacts",
-          "columnsFrom": [
-            "contact_id"
           ],
           "columnsTo": [
             "id"
@@ -93,13 +73,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "is_group": {
-          "name": "is_group",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "image_url": {
           "name": "image_url",
           "type": "text",
@@ -107,22 +80,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "last_updated": {
-          "name": "last_updated",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user1_id": {
-          "name": "user1_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user2_id": {
-          "name": "user2_id",
+        "is_group": {
+          "name": "is_group",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -130,34 +89,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "chats_user1_id_contacts_id_fk": {
-          "name": "chats_user1_id_contacts_id_fk",
-          "tableFrom": "chats",
-          "tableTo": "contacts",
-          "columnsFrom": [
-            "user1_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "chats_user2_id_contacts_id_fk": {
-          "name": "chats_user2_id_contacts_id_fk",
-          "tableFrom": "chats",
-          "tableTo": "contacts",
-          "columnsFrom": [
-            "user2_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

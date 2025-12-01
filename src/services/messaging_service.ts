@@ -1,107 +1,78 @@
 import { db } from "../local_db/db";
-import { chatParticipants, chats } from "../local_db/schema";
+import { chatParticipants, chats, contacts, messages } from "../local_db/schema";
 import { useAuthStore } from "../store/auth_store";
 import { useMessagingStore } from "../store/messageing_store";
-import { eq, and, or } from "drizzle-orm";
+import { eq, and, or, inArray, sql } from "drizzle-orm";
 
-export const getOrCreateChatParticipants = async (): Promise<number | null> => {
+export async function findExistingChat(userA: string, userB: string) {
+  const result = await db
+    .select({
+      chatId: chatParticipants.chatId,
+    })
+    .from(chatParticipants)
+    .where(
+      inArray(chatParticipants.contactPublicId, [userA, userB])
+    )
+    .groupBy(chatParticipants.chatId)
+    .having(sql`COUNT(*) = 2`);
+
+  return result.length > 0 ? result[0].chatId : null;
+}
+
+export async function createChat(userName: string, userId: string) {
   const currentUserId = useAuthStore.getState().userId;
-  const selectedContact = useMessagingStore.getState().user;
- 
-  console.log(currentUserId);
-  console.log(selectedContact);
+  const existing = await findExistingChat(currentUserId!, userId);
+  getChatWithParticipants(existing!);
+  if (existing) return existing;
 
-  if (!currentUserId || !selectedContact) {
-    console.error("Missing current user or selected contact");
-    return null;
-  }
+  // 1. create chat
+  const [chat] = await db.insert(chats).values({
+    name: userName,
+    isGroup: false,
+  }).returning({ id: chats.id });
 
-  try {
-    // 1️⃣ Check if a chat already exists between these two users
-    const existingChat = await db
-      .select()
-      .from(chats)
-      .where(
-        or(
-          and(eq(chats.user1Id, currentUserId), eq(chats.user2Id, selectedContact.id)),
-          and(eq(chats.user1Id, selectedContact.id), eq(chats.user2Id, currentUserId))
-        )
-      )
-      .get();
+  // 2. add chat participants
+  await db.insert(chatParticipants).values([
+    { contactPublicId: currentUserId!, chatId: chat.id },
+    { contactPublicId: userId, chatId: chat.id },
+  ]);
 
-    let chatId: number;
+  return chat.id;
+}
 
-    if (existingChat) {
-      chatId = existingChat.id;
-    } else {
-      // 2️⃣ Create a new chat
-      const insertedChat = await db.insert(chats).values({
-        name: `${currentUserId}-${selectedContact.id}`,
-        isGroup: false, // <-- use boolean
-        lastUpdated: Date.now(),
-        user1Id: currentUserId,
-        user2Id: selectedContact.id,
-      }).returning();
+async function getChatWithParticipants(chatId: number) {
+  const chat = await db
+    .select()
+    .from(chats)
+    .where(eq(chats.id, chatId));
 
-      chatId = insertedChat[0].id;
-    }
+  const participants = await db
+    .select()
+    .from(chatParticipants)
+    .where(eq(chatParticipants.chatId, chatId));
 
-    // 3️⃣ Ensure both participants exist in chatParticipants
-    const existingParticipants = await db
-      .select()
-      .from(chatParticipants)
-      .where(eq(chatParticipants.chatId, chatId));
-
-    const participantIds = existingParticipants.map(p => p.contactId);
-
-    const valuesToInsert = [];
-
-    if (!participantIds.includes(currentUserId)) {
-      valuesToInsert.push({
-        chatId,
-        contactId: currentUserId,
-        contactPublicId: "", // optional
-      });
-    }
-
-    if (!participantIds.includes(selectedContact.id)) {
-      valuesToInsert.push({
-        chatId,
-        contactId: selectedContact.id,
-        contactPublicId: selectedContact.publicId,
-      });
-    }
-
-    if (valuesToInsert.length > 0) {
-      await db.insert(chatParticipants).values(valuesToInsert);
-    }
-    getAllChatsWithParticipants();
-    return chatId;
-  } catch (err) {
-    console.error("Failed to get or create chat participants:", err);
-    return null;
-  }
-};
+  return { chat: chat[0], participants };
+}
 
 
-export const getAllChatsWithParticipants = async () => {
-  try {
-    const result = await db
-      .select({
-        chatId: chats.id,
-        chatName: chats.name,
-        isGroup: chats.isGroup,
-        lastUpdated: chats.lastUpdated,
-        participantId: chatParticipants.contactId,
-        participantPublicId: chatParticipants.contactPublicId,
-      })
-      .from(chats)
-      .leftJoin(chatParticipants, eq(chatParticipants.chatId, chats.id));
+export async function getChatsWithMessages() {
+  // 1. Get all chatIds that have messages
+  const messageChatIds = await db
+    .select({ chatId: messages.chatId })
+    .from(messages)
+    .groupBy(messages.chatId)
+    .all(); // <-- execute query
 
-      console.log(result);
-    return result;
-  } catch (err) {
-    console.error("Failed to fetch chats with participants:", err);
-    return [];
-  }
-};
+  const chatIds = messageChatIds.map((m) => m.chatId);
+
+  if (chatIds.length === 0) return []; // no chats with messages
+
+  // 2. Select chats whose id is in chatIds
+  const chatsWithMessages = await db
+    .select()
+    .from(chats)
+    .where(inArray(chats.id, chatIds))
+    .all(); // <-- execute query
+
+  return chatsWithMessages;
+}

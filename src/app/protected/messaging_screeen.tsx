@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import {
     View,
     Text,
@@ -43,7 +43,9 @@ export default function MessagingScreen() {
     const flatListRef = useRef<FlatList>(null);
     const slideAnim = useRef(new Animated.Value(300)).current;
 
-
+    useEffect(()=>{
+        console.log(user);
+    },[]);
 
     // Inside your component
     const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);

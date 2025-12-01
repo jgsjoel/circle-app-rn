@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Image, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { getChatsWithMessages } from '@/src/services/messaging_service';
 
 type Tab = 'chats' | 'calls';
 
@@ -28,6 +29,15 @@ const menuItems = [
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('chats');
   const [showMenu, setShowMenu] = useState(false);
+
+  useEffect(() => {
+    const init = async () => {
+      const chats = await getChatsWithMessages();
+      console.log("Chats with messages:", JSON.stringify(chats, null, 2));
+
+    }
+    init();
+  }, []);
 
   const renderChatItem = ({ item }: any) => (
     <TouchableOpacity className="flex-row items-center px-4 py-3 border-b border-gray-800"

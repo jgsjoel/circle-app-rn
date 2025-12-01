@@ -7,7 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMessagingStore } from "@/src/store/messageing_store";
-import { getOrCreateChatParticipants } from "@/src/services/messaging_service";
+import { createChat } from "@/src/services/messaging_service";
 
 interface ContactItem {
     id: number;
@@ -49,14 +49,15 @@ export default function ContactScreen() {
             <TouchableOpacity
                 className="px-4 py-3"
                 onPress={async() => {
-                    // Set the current user in Zustand
+                    
+                    const chatId = await createChat(item.name,item.publicId);
                     setUser({
                         id: item.id,
                         name: item.name,
                         phone: item.phone,
                         publicId: item.publicId,
+                        localChatId: chatId
                     });
-                    const chatId = await getOrCreateChatParticipants();
     
                     // Navigate to messaging screen
                     router.push("/protected/messaging_screeen");
