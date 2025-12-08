@@ -11,7 +11,7 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../../drizzle/migrations';
 
-const expoDb = openDatabaseSync("db.db");
+const expoDb = openDatabaseSync("db.db",{enableChangeListener: true});
 const db = drizzle(expoDb);
 
 export default function RootLayout() {

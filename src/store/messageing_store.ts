@@ -17,7 +17,7 @@ interface MessagingStore {
   setAuthenticated: (value: boolean) => void;
   setUser: (user: CurrentUser) => void;
   setOnlineStatus: (status: boolean) => void;
-  logout: () => void;
+  clearCurrentChat: () => void;
 }
 
 export const useMessagingStore = create<MessagingStore>((set, get) => ({
@@ -36,5 +36,5 @@ export const useMessagingStore = create<MessagingStore>((set, get) => ({
     }
   },
 
-  logout: () => set({ user: null, isAuthenticated: false }),
+  clearCurrentChat: () => set({ user: null, isAuthenticated: false }),
 }));

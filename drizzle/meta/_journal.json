@@ -15,6 +15,27 @@
       "when": 1764579658598,
       "tag": "0001_familiar_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1765167011531,
+      "tag": "0002_dry_lady_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1765167257134,
+      "tag": "0003_classy_captain_midlands",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1765169430385,
+      "tag": "0004_nebulous_quasar",
+      "breakpoints": true
     }
   ]
 }

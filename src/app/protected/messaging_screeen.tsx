@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     Animated,
     Alert,
+    BackHandler,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +20,8 @@ import * as DocumentPicker from "expo-document-picker";
 import { router } from "expo-router";
 import { useLocalSearchParams } from "expo-router";
 import { useMessagingStore } from "@/src/store/messageing_store";
+import { getMessagesWithMedia, saveMessage } from "@/src/services/messaging_service";
+import { nanoid } from "nanoid/non-secure";
 
 type Message = {
     id: string;
@@ -35,7 +38,7 @@ type AttachmentOption = {
 };
 
 export default function MessagingScreen() {
-    const user = useMessagingStore((state) => state.user); // get current user
+    const { user,clearCurrentChat } = useMessagingStore(); // get current user
     const { contact } = useLocalSearchParams();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
@@ -43,9 +46,50 @@ export default function MessagingScreen() {
     const flatListRef = useRef<FlatList>(null);
     const slideAnim = useRef(new Animated.Value(300)).current;
 
-    useEffect(()=>{
-        console.log(user);
-    },[]);
+
+    useEffect(() => {
+        const backAction = () => {
+            clearCurrentChat(); // clear current user
+          router.back(); // navigate back
+          return true; // prevent default behavior
+        };
+      
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          backAction
+        );
+      
+        return () => backHandler.remove();
+      }, []);
+
+    useEffect(() => {
+        if (!user?.localChatId) return;
+    
+        const loadMessages = async () => {
+            try {
+                const dbMessages = await getMessagesWithMedia(user.localChatId);
+    
+                const formatted = dbMessages.map((m) => ({
+                    id: m.messageId,
+                    text: m.message,
+                    sender: m.fromMe ? "me" : "other",
+                }));
+    
+                setMessages(formatted as Message[]);
+    
+                // Scroll to bottom once loaded
+                setTimeout(() => {
+                    flatListRef.current?.scrollToEnd({ animated: false });
+                }, 100);
+            } catch (err) {
+                console.error("Error loading messages:", err);
+            }
+        };
+    
+        loadMessages();
+    }, []);
+    
+
 
     // Inside your component
     const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
@@ -57,13 +101,29 @@ export default function MessagingScreen() {
     };
 
 
-    const sendMessage = () => {
+    const sendMessage = async () => {
         if (!input.trim()) return;
         const newMessage: Message = {
             id: Date.now().toString(),
             text: input,
             sender: "me",
         };
+        await saveMessage({
+            messageId: nanoid(16),
+            message: newMessage.text,
+            fromMe: true,
+            timestamp: Date.now(),
+            status: "pending",
+            chatId: user?.localChatId,
+
+            // media: [
+            //   {
+            //     source: "/path/to/file.jpg",
+            //     publicId: "img123",
+            //   },
+            // ],
+        });
+
         setMessages((prev) => [...prev, newMessage]);
         setInput("");
 
@@ -188,6 +248,7 @@ export default function MessagingScreen() {
                 {/* Header */}
                 <View className="flex-row items-center px-4 py-3 border-b border-gray-800">
                     <TouchableOpacity className="mr-3" onPress={() => {
+                        clearCurrentChat();
                         router.back();
                     }}>
                         <Ionicons name="arrow-back" size={24} color="white" />
